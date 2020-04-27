@@ -49,6 +49,20 @@
 options(stringsAsFactors = FALSE)
 options(digits = 15)
 
+
+######Path of protein information:
+test = F
+
+if(test){
+  general_path = 'M:/Software/Git/new/inst/extdata'
+}else{
+  general_path = system.file( package = "mms2plot",dir = "extdata" )
+}
+
+#setwd(general_path)
+
+path_prot = paste(general_path,'mzid_convert/acc_genename.txt',sep = '/')
+
 ###########******FUNCTION******#########
 ####***AddModLabel:add labels by raw_sequence***#########
 Add_label=function(i,df,keys){
@@ -95,7 +109,20 @@ Convert_by_usr <- function(i,table,paths_mzid){
   # i is the row number of table
   # table is user_table which is a dataframe
   user_table = table[i,]
-  rawName = basename(tools::file_path_sans_ext(user_table$fullfilepath))
+  raw_path = user_table$fullfilepath
+  rawName = basename(tools::file_path_sans_ext(raw_path))
+  #>>>>>>
+  
+  if(!file.exists(raw_path)){
+    lf=list.files(dirname(raw_path),full.names = T)
+    if(file.exists(paste(dirname(raw_path),paste0(rawName,'.zip'),sep = '/'))){
+      unzip(paste(dirname(raw_path),paste0(rawName,'.zip'),sep = '/'),exdir = dirname(raw_path))
+    }else{
+      stop(paste0('The raw file does NOT exist in the path: ',
+                  dirname(raw_path)),'! Please check the folder...')
+    }
+  }
+  
   path_mzid_user = paths_mzid[grep(paste0(rawName,'.mzid'),basename(paths_mzid),fixed = T)]
   ######******MZID --> flatten file
   mzid = mzID::mzID(path_mzid_user)
@@ -175,7 +202,7 @@ Convert_by_usr <- function(i,table,paths_mzid){
   unmod_sub$Modifications = 'Unmodified'
   mod_1_sub$Modifications = user_table$modification
   bind_mod_unmod = rbind(mod_1_sub,unmod_sub)
-  bind_mod_unmod$`Raw file` = user_table$fullfilepath
+  bind_mod_unmod$`Raw file` = raw_path
   
   if('description' %in% colnames(bind_mod_unmod)){
     cols_select = c('Raw file','acquisitionnum','Modifications','pepseq',
@@ -202,6 +229,7 @@ Convert_by_usr <- function(i,table,paths_mzid){
   return(df_mms2plot)
 }
 
+####>>>>>>  Main function:convert_mzid  <<<<<<####
 convert_mzid = function(path_user_table,dir_mzid,label.by.Raw_seq_charge){
   user_table = data.table::fread(path_user_table,header = T)#read user table
   paths_mzid = list.files(dir_mzid,recursive = T,full.names = T)
@@ -232,5 +260,6 @@ convert_mzid = function(path_user_table,dir_mzid,label.by.Raw_seq_charge){
   df_labeled = do.call(rbind,df_sub_ls)
   return(df_labeled)
 }
+
 ###***Run the main function:convert_mz id
 
