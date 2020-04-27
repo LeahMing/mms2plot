@@ -1,0 +1,3 @@
+fullfilepath	modification	mass_shift	delta
+mzid_convert/mzML/q5145.mzML	Hy	15.994915	0.01
+mzid_convert/mzML/b6381.mzML	Hy	15.994915	0.01
